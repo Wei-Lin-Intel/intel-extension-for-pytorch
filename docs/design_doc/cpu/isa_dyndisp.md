@@ -4,15 +4,16 @@ This document explains the dynamic kernel dispatch mechanism for Intel® Extensi
 
 ## Overview
 
-IPEX dyndisp is forked from **PyTorch:** `ATen/native/DispatchStub.h` and `ATen/native/DispatchStub.cpp`. IPEX adds additional CPU ISA level support, such as `AVX512_VNNI`, `AVX512_BF16` and `AMX`.
+IPEX dyndisp is forked from **PyTorch:** `ATen/native/DispatchStub.h` and `ATen/native/DispatchStub.cpp`. IPEX adds additional CPU ISA level support, such as `AVX512_VNNI`, `AVX512_BF16`, `AMX` and `AVX512_FP16`.
 
 PyTorch & IPEX CPU ISA support statement:
- | | DEFAULT | AVX2 | AVX2_VNNI | AVX512 | AVX512_VNNI | AVX512_BF16 | AMX |
- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
- | PyTorch | ✔ | ✔ | ✘ | ✔ | ✘ | ✘ | ✘ |
- | IPEX-1.11 | ✘ | ✔ | ✘ | ✔ | ✘ | ✘ | ✘ |
- | IPEX-1.12 | ✘ | ✔ | ✘ | ✔ | ✔ | ✔ | ✔ |
- | IPEX-1.13 | ✘ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
+ | | DEFAULT | AVX2 | AVX2_VNNI | AVX512 | AVX512_VNNI | AVX512_BF16 | AMX | AVX512_FP16 |
+ | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+ | PyTorch | ✔ | ✔ | ✘ | ✔ | ✘ | ✘ | ✘ | ✘ |
+ | IPEX-1.11 | ✘ | ✔ | ✘ | ✔ | ✘ | ✘ | ✘ | ✘ |
+ | IPEX-1.12 | ✘ | ✔ | ✘ | ✔ | ✔ | ✔ | ✔ | ✘ |
+ | IPEX-1.13 | ✘ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✘ |
+ | IPEX-2.1  | ✘ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
 
 \* Current IPEX DEFAULT level implemented as same as AVX2 level.
 
@@ -25,6 +26,7 @@ PyTorch & IPEX CPU ISA support statement:
  | AVX512_BF16 | GCC 10.3+ |
  | AVX2_VNNI | GCC 11.2+ |
  | AMX | GCC 11.2+ |
+ | AVX512_FP16 | GCC 12.1+ | 
 
 \* Check with `cmake/Modules/FindAVX.cmake` for detailed compiler checks.
 
@@ -69,6 +71,8 @@ The CodeGen will copy each cpp files from **Kernel implementation**, and then ad
 > AVX512_BF16: `build/Release/csrc/isa_codegen/cpu/aten/kernels/AdaptiveAveragePoolingKrnl.cpp.AVX512_BF16.cpp -O3 -D__AVX512F__ -DCPU_CAPABILITY_AVX512 -DCPU_CAPABILITY_AVX512_VNNI -mavx512f -mavx512bw -mavx512vl -mavx512dq -mavx512vnni -mavx512bf16 -mfma -DCPU_CAPABILITY=AVX512_BF16 -DCPU_CAPABILITY_AVX512_BF16`
 >
 > AMX: `build/Release/csrc/isa_codegen/cpu/aten/kernels/AdaptiveAveragePoolingKrnl.cpp.AMX.cpp -O3  -D__AVX512F__ -DCPU_CAPABILITY_AVX512 -DCPU_CAPABILITY_AVX512_VNNI -DCPU_CAPABILITY_AVX512_BF16 -mavx512f -mavx512bw -mavx512vl -mavx512dq -mavx512vnni -mavx512bf16 -mfma -mamx-tile -mamx-int8 -mamx-bf16 -DCPU_CAPABILITY=AMX -DCPU_CAPABILITY_AMX`
+>
+> AVX512_FP16: `build/Release/csrc/isa_codegen/cpu/aten/kernels/AdaptiveAveragePoolingKrnl.cpp.AVX512_FP16.cpp -O3 -D__AVX512F__ -DCPU_CAPABILITY_AVX512 -DCPU_CAPABILITY_AVX512_VNNI -DCPU_CAPABILITY_AVX512_BF16 -DCPU_CAPABILITY_AMX -mavx512f -mavx512bw -mavx512vl -mavx512dq -mavx512vnni -mavx512bf16 -mfma -mavx512fp16 -mamx-tile -mamx-int8 -mavx512fp16 -DCPU_CAPABILITY=AVX512_FP16 -DCPU_CAPABILITY_AVX512_FP16`
 
 ---
 
